@@ -23,12 +23,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if jwt_user %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/features">Features</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/cart">Cart</a>
-                        </li>
+                        {% if jwt_user['role'] == 'delivery' %}
+                            <!-- Delivery: Only show profile/logout -->
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/features">Features</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/cart">Cart</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="profile-circle me-2">
@@ -86,7 +90,7 @@
     {% endif %}
     <main class="container position-relative">
         {% block content %}{% endblock %}
-        {% if jwt_user %}
+        {% if jwt_user and jwt_user['role'] != 'delivery' %}
         <h2 class="mt-3 mb-4 text-center animate__animated animate__fadeIn">Available Products</h2>
         <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
             {% for product in products %}
@@ -146,6 +150,20 @@
                 .catch(() => alert('Error adding to cart.'));
             });
         });
+        // Save user location if user is logged in and is a user
+        {% if jwt_user and jwt_user['role'] == 'user' %}
+        if (navigator.geolocation && !sessionStorage.getItem('locationSaved')) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                fetch('/save-location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                }).then(res => res.json()).then(data => {
+                    sessionStorage.setItem('locationSaved', '1');
+                });
+            });
+        }
+        {% endif %}
     });
     </script>
 </body>

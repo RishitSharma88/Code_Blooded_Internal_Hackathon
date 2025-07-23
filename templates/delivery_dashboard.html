@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-center animate__animated animate__fadeInDown">Delivery Dashboard</h2>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h5 class="card-title">Current Deliveries</h5>
+                    {% if deliveries and deliveries|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Products</th>
+                                    <th>Map</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in deliveries %}
+                                <tr>
+                                    <td>{{ delivery.username }}</td>
+                                    <td>
+                                        <ul class="mb-0">
+                                            {% for item in delivery['items'] %}
+                                            <li>{{ item.name }} (₹{{ item.price }})</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td style="min-width: 250px;">
+                                        <div id="map-{{ loop.index }}" style="height:180px; width:100%;"></div>
+                                        <script>
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            var userCoords = [{{ delivery.user_coords[0]|float|safe }}, {{ delivery.user_coords[1]|float|safe }}];
+                                            var map = L.map('map-{{ loop.index }}').setView(userCoords, 14);
+                                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                maxZoom: 19,
+                                                attribution: '© OpenStreetMap contributors'
+                                            }).addTo(map);
+                                            L.marker(userCoords).addTo(map).bindPopup('User Location').openPopup();
+                                        });
+                                        </script>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="finishBookingBtn" class="btn btn-success btn-lg">Booking finished</button>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">No current deliveries.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('finishBookingBtn');
+    if (btn) {
+        btn.onclick = function() {
+            var username = "{{ deliveries[0].username if deliveries and deliveries|length > 0 else '' }}";
+            if (!username) return;
+            fetch('/finish-booking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+        };
+    }
+});
+</script>
+</div>
+{% endblock %} 

@@ -221,7 +221,7 @@ def register_page():
         valid, msg = is_valid_password(password)
         if not valid:
             return render_template('register.html', error=msg)
-        # Check for existing user/admin by username or email
+        # Check for existing user/admin/delivery by username or email
         if role == 'user':
             user_collection = db['users']
             if user_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
@@ -230,13 +230,16 @@ def register_page():
             admin_collection = db['admins']
             if admin_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
                 return render_template('register.html', error='Admin with this username or email already exists.')
+        elif role == 'delivery':
+            delivery_collection = db['delivery']
+            if delivery_collection.find_one({"$or": [{"username": username}, {"email": email}]}):
+                return render_template('register.html', error='Delivery guy with this username or email already exists.')
         else:
             return render_template('register.html', error='Invalid role selected.')
         # Generate OTP and send email
         otp = str(random.randint(100000, 999999))
         if not send_otp_email(email, otp):
             return render_template('register.html', error='Failed to send verification email. Please try again.')
-        # Store registration info and OTP in session (or temp storage)
         session['pending_registration'] = {
             'username': username,
             'email': email,
@@ -254,15 +257,21 @@ def verify_otp():
     if not pending:
         return redirect(url_for('register_page'))
     if user_otp == pending['otp']:
-        # Save user/admin to DB
+        # Save user/admin/delivery to DB
         if pending['role'] == 'user':
             db['users'].insert_one({
                 'username': pending['username'],
                 'email': pending['email'],
                 'password': pending['password']
             })
-        else:
+        elif pending['role'] == 'admin':
             db['admins'].insert_one({
+                'username': pending['username'],
+                'email': pending['email'],
+                'password': pending['password']
+            })
+        elif pending['role'] == 'delivery':
+            db['delivery'].insert_one({
                 'username': pending['username'],
                 'email': pending['email'],
                 'password': pending['password']
@@ -305,11 +314,26 @@ def login_page():
                     'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
                 }
                 token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-                resp = make_response(redirect(url_for('home')))
+                resp = make_response(redirect(url_for('admin_dashboard')))
                 resp.set_cookie('access_token', token, httponly=True, samesite='Lax')
                 return resp
             else:
                 return render_template('login.html', error='Invalid admin credentials.')
+        elif role == 'delivery':
+            delivery_collection = db['delivery']
+            delivery = delivery_collection.find_one({"username": username, "password": password})
+            if delivery:
+                payload = {
+                    'username': username,
+                    'role': 'delivery',
+                    'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+                }
+                token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+                resp = make_response(redirect(url_for('delivery_dashboard')))
+                resp.set_cookie('access_token', token, httponly=True, samesite='Lax')
+                return resp
+            else:
+                return render_template('login.html', error='Invalid delivery credentials.')
         else:
             return render_template('login.html', error='Invalid role selected.')
     return render_template('login.html', error=None)
@@ -326,10 +350,12 @@ def add_to_cart_route():
     if not user:
         return jsonify({'success': False, 'message': 'Login required'}), 401
     product = request.get_json()
-    # Ensure product has a unique code or name
     if not product or not product.get('name'):
         return jsonify({'success': False, 'message': 'Invalid product'}), 400
-    add_to_cart(user['username'], product)
+    # Store cart items in session until payment
+    cart_items = session.get('cart_items', [])
+    cart_items.append(product)
+    session['cart_items'] = cart_items
     return jsonify({'success': True, 'message': 'Added to cart'})
 
 @app.route('/cart')
@@ -337,7 +363,7 @@ def cart_page():
     user = get_logged_in_user()
     if not user:
         return redirect(url_for('login_page'))
-    cart_items = get_cart(user['username'])
+    cart_items = session.get('cart_items', [])
     return render_template('cart.html', cart_items=cart_items, year=datetime.now().year)
 
 @app.route('/remove-from-cart', methods=['POST'])
@@ -358,11 +384,16 @@ def payment_page():
     user = get_logged_in_user()
     if not user:
         return redirect(url_for('login_page'))
-    cart_items = get_cart(user['username'])
+    cart_items = session.get('cart_items', [])
     total = sum(item.get('price', 0) for item in cart_items)
     if request.method == 'POST':
-        # Simulate payment success
-        clear_cart(user['username'])
+        # On payment, create/update cart in DB with status=False
+        db['cart'].update_one(
+            {'username': user['username']},
+            {'$set': {'items': cart_items, 'status': False}},
+            upsert=True
+        )
+        session['cart_items'] = []
         return redirect(url_for('delivery_page'))
     return render_template('payment.html', total=round(total, 2), year=datetime.now().year)
 
@@ -382,6 +413,41 @@ def delivery_page():
     shop_coords = {'lat': 28.6139, 'lng': 77.2090}  # Delhi
     user_coords = {'lat': 28.7041, 'lng': 77.1025}  # Delhi (random)
     return render_template('delivery.html', delivery_guy=delivery_guy, eta=eta, shop_coords=shop_coords, user_coords=user_coords, year=datetime.now().year)
+
+@app.route('/save-location', methods=['POST'])
+def save_location():
+    user = get_logged_in_user()
+    if not user or user.get('role') != 'user':
+        return jsonify({'success': False, 'message': 'Login required'}), 401
+    data = request.get_json()
+    lat = data.get('lat')
+    lng = data.get('lng')
+    if lat is None or lng is None:
+        return jsonify({'success': False, 'message': 'Missing coordinates'}), 400
+    db['users'].update_one({'username': user['username']}, {'$set': {'location': [lat, lng]}})
+    return jsonify({'success': True, 'message': 'Location saved'})
+
+@app.route('/delivery-dashboard', methods=['GET'])
+def delivery_dashboard():
+    import random
+    user = get_logged_in_user()
+    if not user or user.get('role') != 'delivery':
+        return redirect(url_for('login_page'))
+    # Only assign carts with status == False and non-empty items
+    carts = list(db['cart'].find({'status': False}))
+    valid_carts = [c for c in carts if c.get('items')]
+    if not valid_carts:
+        deliveries = []
+    else:
+        assigned_cart = random.choice(valid_carts)
+        assigned_user = db['users'].find_one({'username': assigned_cart['username']})
+        user_coords = assigned_user['location'] if assigned_user and 'location' in assigned_user else [28.7041, 77.1025]
+        deliveries = [{
+            'username': assigned_cart['username'],
+            'items': assigned_cart['items'],
+            'user_coords': user_coords
+        }]
+    return render_template('delivery_dashboard.html', deliveries=deliveries, year=datetime.now().year)
 
 @app.route('/admin', methods=['GET'])
 def admin_dashboard():
@@ -434,7 +500,20 @@ def save_rating():
         'value': value,
         'date': datetime.now().strftime('%Y-%m-%d %H:%M')
     })
+    # Do NOT set status=True here
     return jsonify({'success': True, 'message': 'Thank you for your feedback!'})
+
+@app.route('/finish-booking', methods=['POST'])
+def finish_booking():
+    user = get_logged_in_user()
+    if not user or user.get('role') != 'delivery':
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    data = request.get_json()
+    username = data.get('username')
+    if not username:
+        return jsonify({'success': False, 'message': 'Missing username'}), 400
+    db['cart'].update_one({'username': username}, {'$set': {'status': True, 'items': []}})
+    return jsonify({'success': True, 'message': 'Booking finished'})
 
 if __name__ == '__main__':
     app.run(debug=True, port=4000)
