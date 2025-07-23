@@ -1,0 +1,183 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e0f7fa 100%);
+    min-height: 100vh;
+    color: #222;
+}
+
+.navbar {
+    background: linear-gradient(90deg, #0d8abc 0%, #00c853 100%) !important;
+    box-shadow: 0 2px 12px rgba(13, 138, 188, 0.08);
+    transition: background 0.4s;
+}
+
+.navbar-brand {
+    font-size: 2rem;
+    letter-spacing: 1px;
+    color: #fff !important;
+    font-weight: 700;
+}
+
+.nav-link {
+    color: #fff !important;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #ffd600 !important;
+}
+
+.profile-circle img {
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+.profile-circle img:hover {
+    transform: scale(1.1) rotate(-5deg);
+}
+
+header.bg-light {
+    background: linear-gradient(120deg, #fff 60%, #e0f7fa 100%);
+    position: relative;
+    overflow: hidden;
+}
+header .container {
+    position: relative;
+    z-index: 2;
+}
+header::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 80px;
+    background: url('https://svgshare.com/i/12bA.svg') repeat-x;
+    background-size: cover;
+    z-index: 1;
+    opacity: 0.2;
+    animation: waveMove 8s linear infinite;
+}
+@keyframes waveMove {
+    0% { background-position-x: 0; }
+    100% { background-position-x: 1000px; }
+}
+
+.display-4 {
+    color: #0d8abc;
+    text-shadow: 0 2px 8px rgba(13,138,188,0.08);
+    animation: fadeInDown 1s;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-primary, .btn-success {
+    border-radius: 2rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,200,83,0.08);
+    transition: background 0.2s, transform 0.2s;
+}
+.btn-primary:hover, .btn-success:hover {
+    background: linear-gradient(90deg, #00c853 0%, #0d8abc 100%);
+    transform: translateY(-2px) scale(1.04);
+}
+
+.card {
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px rgba(13,138,188,0.08);
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: #fff;
+}
+.card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(0,200,83,0.12);
+}
+.card-title {
+    color: #0d8abc;
+    font-weight: 700;
+}
+.card-footer {
+    background: transparent;
+    border-top: none;
+}
+
+/* Login Form Animation */
+.card.shadow-sm {
+    animation: fadeInUp 0.8s;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+input.form-control, select.form-select {
+    border-radius: 1rem;
+    border: 1.5px solid #e0f7fa;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+input.form-control:focus, select.form-select:focus {
+    border-color: #0d8abc;
+    box-shadow: 0 0 0 2px #e0f7fa;
+}
+
+.alert-danger {
+    border-radius: 1rem;
+    background: linear-gradient(90deg, #ff5252 0%, #ffd600 100%);
+    color: #222;
+    font-weight: 600;
+    border: none;
+}
+
+footer {
+    background: linear-gradient(90deg, #0d8abc 0%, #00c853 100%) !important;
+    box-shadow: 0 -2px 12px rgba(13, 138, 188, 0.08);
+    font-size: 1.1rem;
+}
+
+/* Floating Cart Button */
+.fab-cart {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: linear-gradient(90deg, #ffd600 0%, #0d8abc 100%);
+    color: #fff;
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    font-size: 2rem;
+    z-index: 1000;
+    transition: background 0.2s, transform 0.2s;
+}
+.fab-cart:hover {
+    background: linear-gradient(90deg, #0d8abc 0%, #ffd600 100%);
+    transform: scale(1.08);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    .navbar-brand {
+        font-size: 1.3rem;
+    }
+    .fab-cart {
+        width: 48px;
+        height: 48px;
+        font-size: 1.3rem;
+        bottom: 16px;
+        right: 16px;
+    }
+    .card {
+        border-radius: 1rem;
+    }
+}

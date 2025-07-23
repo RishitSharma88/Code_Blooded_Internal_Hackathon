@@ -5,27 +5,31 @@
         <div class="card shadow-sm mt-5 p-2 position-relative" style="border: 2px solid #0d8abc; background: linear-gradient(120deg, #fff 80%, #e0f7fa 100%); overflow: hidden;">
             <div class="position-absolute" style="top:-40px; right:-40px; width:120px; height:120px; background: radial-gradient(circle, #00c85333 60%, transparent 100%); z-index:0;"></div>
             <div class="card-body position-relative" style="z-index:1;">
-                <h2 class="card-title text-center mb-4 animate__animated animate__fadeInDown">Login</h2>
+                <h2 class="card-title text-center mb-4 animate__animated animate__fadeInDown">Register</h2>
                 {% if error %}
                 <div class="alert alert-danger animate__animated animate__shakeX">{{ error }}</div>
                 {% endif %}
-                <form method="POST" action="/login" class="animate__animated animate__fadeInUp animate__delay-1s">
+                <form method="POST" action="/register" class="animate__animated animate__fadeInUp animate__delay-1s">
                     <div class="mb-3 input-group">
                         <span class="input-group-text bg-white border-end-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#0d8abc" class="bi bi-person" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm4-3a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"/><path d="M14 14s-1-1.5-6-1.5S2 14 2 14v1h12v-1z"/></svg></span>
                         <input type="text" class="form-control border-start-0" id="username" name="username" placeholder="Username" required>
+                    </div>
+                    <div class="mb-3 input-group">
+                        <span class="input-group-text bg-white border-end-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#0d8abc" class="bi bi-envelope" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2zm13 2.383-4.708 2.825L15 11.118V5.383zm-.034 6.876-5.857-3.515L8 9.583l-1.109-.839-5.857 3.515A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 5.383v5.735l4.708-2.91L1 5.383z"/></svg></span>
+                        <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="Email" required>
                     </div>
                     <div class="mb-3 input-group">
                         <span class="input-group-text bg-white border-end-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#0d8abc" class="bi bi-lock" viewBox="0 0 16 16"><path d="M8 1a3 3 0 0 0-3 3v3H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2h-1V4a3 3 0 0 0-3-3zm-2 3a2 2 0 1 1 4 0v3H6V4zm-2 5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9z"/></svg></span>
                         <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="Password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="role" class="form-label">Login as</label>
+                        <label for="role" class="form-label">Register as</label>
                         <select class="form-select" id="role" name="role" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 animate__animated animate__pulse animate__infinite">Login</button>
+                    <button type="submit" class="btn btn-primary w-100 animate__animated animate__pulse animate__infinite">Register</button>
                 </form>
             </div>
         </div>

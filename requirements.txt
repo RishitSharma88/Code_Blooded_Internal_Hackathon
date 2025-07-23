@@ -3,3 +3,5 @@ flask-pymongo
 dnspython
 pylance
 flask-cors
+PyJWT
+requests

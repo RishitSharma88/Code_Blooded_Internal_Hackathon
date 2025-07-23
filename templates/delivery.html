@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-center animate__animated animate__fadeInDown">Delivery in Progress</h2>
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm animate__animated animate__fadeInUp">
+                <div class="card-body d-flex align-items-center">
+                    <img src="{{ delivery_guy.photo }}" alt="Delivery Guy" class="rounded-circle me-3" width="80" height="80">
+                    <div>
+                        <h5 class="mb-1">{{ delivery_guy.name }}</h5>
+                        <p class="mb-1">Phone: {{ delivery_guy.phone }}</p>
+                        <span class="badge bg-success">ETA: <span id="eta">{{ eta }}</span> min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h5 class="mb-3">Live Delivery Map</h5>
+                    <div id="map" style="height:350px; width:100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <span class="text-muted">Your order is on the way! Thank you for shopping with ShopLore.</span>
+    </div>
+</div>
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ratingModalLabel">Delivery Successful!</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p>Your order has been delivered. Please rate your experience:</p>
+        <div id="ratingStars">
+          {% for i in range(1, 6) %}
+            <span class="star" data-value="{{ i }}" style="font-size:2rem; cursor:pointer; color:#ccc;">&#9733;</span>
+          {% endfor %}
+        </div>
+        <div id="ratingThanks" class="mt-3 text-success fw-bold" style="display:none;">Thank you for your feedback!</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// Returns [lat, lng] within radius (meters) of [lat, lng]
+function randomPointNear(lat, lng, radius) {
+    const r = radius / 111300; // meters to degrees
+    const u = Math.random();
+    const v = Math.random();
+    const w = r * Math.sqrt(u);
+    const t = 2 * Math.PI * v;
+    const x = w * Math.cos(t);
+    const y = w * Math.sin(t);
+    // Adjust the x-coordinate for the shrinking of the east-west distances
+    const new_x = x / Math.cos(lat * Math.PI / 180);
+    return [lat + y, lng + new_x];
+}
+function animateMarker(marker, routeCoords, duration, onArrive, onUpdateEta) {
+    let i = 0;
+    const steps = routeCoords.length;
+    const interval = duration / steps;
+    function move() {
+        if (i < steps) {
+            marker.setLatLng(routeCoords[i]);
+            if (onUpdateEta) {
+                const remaining = steps - i;
+                const etaMins = Math.ceil((remaining * interval) / 60000);
+                onUpdateEta(etaMins);
+            }
+            i++;
+            setTimeout(move, interval);
+        } else if (onArrive) {
+            onArrive();
+        }
+    }
+    move();
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var defaultShopCoords = [{{ shop_coords.lat|float|safe }}, {{ shop_coords.lng|float|safe }}];
+    var userCoords = [{{ user_coords.lat|float|safe }}, {{ user_coords.lng|float|safe }}];
+    var map = L.map('map').setView(userCoords, 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    function startRouting(finalUserCoords, deliveryStartCoords) {
+        var routing = L.Routing.control({
+            waypoints: [
+                L.latLng(deliveryStartCoords[0], deliveryStartCoords[1]),
+                L.latLng(finalUserCoords[0], finalUserCoords[1])
+            ],
+            routeWhileDragging: false,
+            draggableWaypoints: false,
+            addWaypoints: false,
+            show: false
+        }).addTo(map);
+        var deliveryMarker = L.marker(deliveryStartCoords, {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', iconSize: [40, 40]})}).addTo(map).bindPopup('Delivery Guy').openPopup();
+        var userMarker = L.marker(finalUserCoords).addTo(map).bindPopup('Your Location');
+        routing.on('routesfound', function(e) {
+            var route = e.routes[0];
+            var routeCoords = route.coordinates.map(function(c) { return [c.lat, c.lng]; });
+            animateMarker(
+                deliveryMarker,
+                routeCoords,
+                300000, // 5 minutes
+                function onArrive() {
+                    // Show modal for rating
+                    var modal = new bootstrap.Modal(document.getElementById('ratingModal'));
+                    modal.show();
+                },
+                function onUpdateEta(etaMins) {
+                    var etaElem = document.getElementById('eta');
+                    if (etaElem) etaElem.textContent = etaMins;
+                }
+            );
+        });
+    }
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var realUserCoords = [position.coords.latitude, position.coords.longitude];
+            var deliveryStart = randomPointNear(realUserCoords[0], realUserCoords[1], 500);
+            startRouting(realUserCoords, deliveryStart);
+        }, function() {
+            var deliveryStart = randomPointNear(userCoords[0], userCoords[1], 500);
+            startRouting(userCoords, deliveryStart); // fallback
+        });
+    } else {
+        var deliveryStart = randomPointNear(userCoords[0], userCoords[1], 500);
+        startRouting(userCoords, deliveryStart); // fallback
+    }
+
+    // Rating logic
+    let selectedRating = 0;
+    document.querySelectorAll('#ratingStars .star').forEach(function(star) {
+        star.addEventListener('mouseenter', function() {
+            let val = parseInt(this.getAttribute('data-value'));
+            document.querySelectorAll('#ratingStars .star').forEach(function(s, idx) {
+                s.style.color = idx < val ? '#ffc107' : '#ccc';
+            });
+        });
+        star.addEventListener('mouseleave', function() {
+            document.querySelectorAll('#ratingStars .star').forEach(function(s, idx) {
+                s.style.color = idx < selectedRating ? '#ffc107' : '#ccc';
+            });
+        });
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.getAttribute('data-value'));
+            document.querySelectorAll('#ratingStars .star').forEach(function(s, idx) {
+                s.style.color = idx < selectedRating ? '#ffc107' : '#ccc';
+            });
+            // Save rating to server
+            fetch('/save-rating', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value: selectedRating })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('ratingThanks').style.display = 'block';
+                setTimeout(function() {
+                    window.location.href = '/';
+                }, 2000);
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

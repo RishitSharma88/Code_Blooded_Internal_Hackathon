@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-center animate__animated animate__fadeInDown">Admin Dashboard</h2>
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h5 class="card-title">Add Product</h5>
+                    <form id="addProductForm">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description" name="description" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price (₹)</label>
+                            <input type="number" class="form-control" id="price" name="price" required min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="image_url" class="form-label">Image URL</label>
+                            <input type="url" class="form-control" id="image_url" name="image_url">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Add Product</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm animate__animated animate__fadeInUp">
+                <div class="card-body">
+                    <h5 class="card-title">Remove Product</h5>
+                    <form id="removeProductForm">
+                        <div class="mb-3">
+                            <label for="remove_name" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="remove_name" name="remove_name" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Remove Product</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h4 class="mb-3">All Products</h4>
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        {% for product in products %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                {% if product.image_url %}
+                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="object-fit:cover; height:200px;">
+                {% else %}
+                <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="object-fit:cover; height:200px;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description }}</p>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">₹{{ product.price }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <h4 class="mb-3">User Ratings</h4>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Rating</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rating in ratings %}
+                <tr>
+                    <td>{{ rating.username }}</td>
+                    <td>{{ rating.value }}</td>
+                    <td>{{ rating.date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+document.getElementById('addProductForm').onsubmit = function(e) {
+    e.preventDefault();
+    fetch('/admin/add-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: this.name.value,
+            description: this.description.value,
+            price: this.price.value,
+            image_url: this.image_url.value
+        })
+    }).then(res => res.json()).then(data => {
+        alert(data.message);
+        if (data.success) location.reload();
+    });
+};
+document.getElementById('removeProductForm').onsubmit = function(e) {
+    e.preventDefault();
+    fetch('/admin/remove-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: this.remove_name.value })
+    }).then(res => res.json()).then(data => {
+        alert(data.message);
+        if (data.success) location.reload();
+    });
+};
+</script>
+{% endblock %} 

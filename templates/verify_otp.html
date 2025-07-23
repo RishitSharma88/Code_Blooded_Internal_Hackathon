@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm mt-5 p-2 position-relative" style="border: 2px solid #0d8abc; background: linear-gradient(120deg, #fff 80%, #e0f7fa 100%); overflow: hidden;">
+            <div class="position-absolute" style="top:-40px; right:-40px; width:120px; height:120px; background: radial-gradient(circle, #00c85333 60%, transparent 100%); z-index:0;"></div>
+            <div class="card-body position-relative" style="z-index:1;">
+                <h2 class="card-title text-center mb-4 animate__animated animate__fadeInDown">Verify Email</h2>
+                <p class="text-center mb-3">A verification code has been sent to <b>{{ email }}</b>.</p>
+                {% if error %}
+                <div class="alert alert-danger animate__animated animate__shakeX">{{ error }}</div>
+                {% endif %}
+                <form method="POST" action="/verify-otp" class="animate__animated animate__fadeInUp animate__delay-1s">
+                    <div class="mb-3 input-group">
+                        <span class="input-group-text bg-white border-end-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#0d8abc" class="bi bi-shield-lock" viewBox="0 0 16 16"><path d="M5.072 1.073a.5.5 0 0 1 .456 0l5.5 2.75A.5.5 0 0 1 11.5 4.5v3.707a5.5 5.5 0 0 1-2.528 4.58l-.472.314-.472-.314A5.5 5.5 0 0 1 5.5 8.207V4.5a.5.5 0 0 1 .072-.427zM6 4.5v3.707a4.5 4.5 0 0 0 2 3.75 4.5 4.5 0 0 0 2-3.75V4.5l-5-2.5-5 2.5z"/><path d="M8 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-1 2a1 1 0 0 1 1 1v1a1 1 0 0 1-2 0v-1a1 1 0 0 1 1-1z"/></svg></span>
+                        <input type="text" class="form-control border-start-0" id="otp" name="otp" placeholder="Enter OTP" required maxlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 animate__animated animate__pulse animate__infinite">Verify</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
