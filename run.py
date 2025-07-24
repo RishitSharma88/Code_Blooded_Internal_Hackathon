@@ -11,7 +11,7 @@ from functools import lru_cache
 import smtplib
 from email.mime.text import MIMEText
 import random
-from cart_utils import add_to_cart, get_cart, remove_from_cart, clear_cart
+from cart_utils import add_to_cart, get_cart, remove_from_cart, clear_cart, mongo_to_dict
 from bson.objectid import ObjectId
 
 app = Flask(__name__)
@@ -120,7 +120,7 @@ def home():
         # Add more mappings as needed
     if user:
         product_collection = db['products']
-        local_products = list(product_collection.find())
+        local_products = [mongo_to_dict(p) for p in product_collection.find()]
         api_products = fetch_openfoodfacts_products(q if q else None, category)
         all_products = local_products + api_products
         if q:
@@ -151,7 +151,7 @@ def user_dashboard():
             category = 'snacks'
         # Add more mappings as needed
     product_collection = db['products']
-    local_products = list(product_collection.find())
+    local_products = [mongo_to_dict(p) for p in product_collection.find()]
     api_products = fetch_openfoodfacts_products(q if q else None, category)
     all_products = local_products + api_products
     if q:
@@ -354,7 +354,8 @@ def add_to_cart_route():
         return jsonify({'success': False, 'message': 'Invalid product'}), 400
     # Store cart items in session until payment
     cart_items = session.get('cart_items', [])
-    cart_items.append(product)
+    # Convert product in case it has _id
+    cart_items.append(mongo_to_dict(product))
     session['cart_items'] = cart_items
     return jsonify({'success': True, 'message': 'Added to cart'})
 
@@ -364,6 +365,8 @@ def cart_page():
     if not user:
         return redirect(url_for('login_page'))
     cart_items = session.get('cart_items', [])
+    # Convert all items in case any have _id
+    cart_items = [mongo_to_dict(item) for item in cart_items]
     return render_template('cart.html', cart_items=cart_items, year=datetime.now().year)
 
 @app.route('/remove-from-cart', methods=['POST'])
@@ -440,11 +443,12 @@ def delivery_dashboard():
         deliveries = []
     else:
         assigned_cart = random.choice(valid_carts)
+        assigned_cart = mongo_to_dict(assigned_cart)
         assigned_user = db['users'].find_one({'username': assigned_cart['username']})
         user_coords = assigned_user['location'] if assigned_user and 'location' in assigned_user else [28.7041, 77.1025]
         deliveries = [{
             'username': assigned_cart['username'],
-            'items': assigned_cart['items'],
+            'items': [mongo_to_dict(item) for item in assigned_cart['items']],
             'user_coords': user_coords
         }]
     return render_template('delivery_dashboard.html', deliveries=deliveries, year=datetime.now().year)
@@ -454,8 +458,8 @@ def admin_dashboard():
     user = get_logged_in_user()
     if not user or user.get('role') != 'admin':
         return redirect(url_for('home'))
-    products = list(db['products'].find())
-    ratings = list(db['ratings'].find())
+    products = [mongo_to_dict(p) for p in db['products'].find()]
+    ratings = [mongo_to_dict(r) for r in db['ratings'].find()]
     for r in ratings:
         r['date'] = r.get('date', '')
     return render_template('admin_dashboard.html', products=products, ratings=ratings, year=datetime.now().year)

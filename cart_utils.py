@@ -5,6 +5,14 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['zepto_clone']
 cart_collection = db['cart']
 
+def mongo_to_dict(doc):
+    if not doc:
+        return doc
+    doc = dict(doc)
+    if '_id' in doc:
+        doc['_id'] = str(doc['_id'])
+    return doc
+
 def add_to_cart(username, product):
     cart_collection.update_one(
         {'username': username},
@@ -14,7 +22,11 @@ def add_to_cart(username, product):
 
 def get_cart(username):
     cart = cart_collection.find_one({'username': username})
-    return cart['items'] if cart and 'items' in cart else []
+    if cart and 'items' in cart:
+        # Convert all items if they have _id fields (paranoia)
+        items = [mongo_to_dict(item) for item in cart['items']]
+        return items
+    return []
 
 def remove_from_cart(username, code=None, name=None):
     if code:

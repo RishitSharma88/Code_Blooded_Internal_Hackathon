@@ -6,44 +6,56 @@ body {
     background: linear-gradient(135deg, #f8fafc 0%, #e0f7fa 100%);
     min-height: 100vh;
     color: #222;
+    letter-spacing: 0.01em;
 }
 
 .navbar {
     background: linear-gradient(90deg, #0d8abc 0%, #00c853 100%) !important;
-    box-shadow: 0 2px 12px rgba(13, 138, 188, 0.08);
-    transition: background 0.4s;
+    box-shadow: 0 2px 16px 0 rgba(13, 138, 188, 0.10);
+    border-bottom: 2px solid #e0f7fa;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .navbar-brand {
-    font-size: 2rem;
-    letter-spacing: 1px;
+    font-size: 2.2rem;
+    letter-spacing: 1.5px;
     color: #fff !important;
-    font-weight: 700;
+    font-weight: 800;
+    text-shadow: 0 2px 8px rgba(13,138,188,0.10);
 }
 
 .nav-link {
     color: #fff !important;
-    font-weight: 500;
-    transition: color 0.2s;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 0.5rem;
+    padding: 0.4rem 1rem;
+    transition: color 0.2s, background 0.2s;
 }
 
 .nav-link:hover, .nav-link.active {
     color: #ffd600 !important;
+    background: rgba(255,255,255,0.08);
 }
 
 .profile-circle img {
-    border: 2px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: transform 0.2s;
+    border: 2.5px solid #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 .profile-circle img:hover {
-    transform: scale(1.1) rotate(-5deg);
+    transform: scale(1.12) rotate(-4deg);
+    box-shadow: 0 4px 16px rgba(13,138,188,0.18);
 }
 
 header.bg-light {
     background: linear-gradient(120deg, #fff 60%, #e0f7fa 100%);
     position: relative;
     overflow: hidden;
+    border-radius: 0 0 2rem 2rem;
+    box-shadow: 0 4px 32px rgba(13,138,188,0.08);
 }
 header .container {
     position: relative;
@@ -57,7 +69,7 @@ header::after {
     background: url('https://svgshare.com/i/12bA.svg') repeat-x;
     background-size: cover;
     z-index: 1;
-    opacity: 0.2;
+    opacity: 0.18;
     animation: waveMove 8s linear infinite;
 }
 @keyframes waveMove {
@@ -67,8 +79,10 @@ header::after {
 
 .display-4 {
     color: #0d8abc;
-    text-shadow: 0 2px 8px rgba(13,138,188,0.08);
+    text-shadow: 0 2px 12px rgba(13,138,188,0.10);
     animation: fadeInDown 1s;
+    font-weight: 800;
+    letter-spacing: 0.03em;
 }
 @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-40px); }
@@ -77,36 +91,41 @@ header::after {
 
 .btn-primary, .btn-success {
     border-radius: 2rem;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,200,83,0.08);
-    transition: background 0.2s, transform 0.2s;
+    font-weight: 700;
+    box-shadow: 0 2px 12px rgba(0,200,83,0.10);
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    padding: 0.7rem 2.2rem;
+    letter-spacing: 0.04em;
 }
 .btn-primary:hover, .btn-success:hover {
     background: linear-gradient(90deg, #00c853 0%, #0d8abc 100%);
-    transform: translateY(-2px) scale(1.04);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 24px rgba(0,200,83,0.16);
 }
 
 .card {
     border-radius: 1.5rem;
-    box-shadow: 0 4px 24px rgba(13,138,188,0.08);
+    box-shadow: 0 4px 32px rgba(13,138,188,0.10);
     border: none;
     transition: transform 0.2s, box-shadow 0.2s;
     background: #fff;
+    overflow: hidden;
 }
 .card:hover {
-    transform: translateY(-6px) scale(1.03);
-    box-shadow: 0 8px 32px rgba(0,200,83,0.12);
+    transform: translateY(-8px) scale(1.035);
+    box-shadow: 0 8px 40px rgba(0,200,83,0.14);
 }
 .card-title {
     color: #0d8abc;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.02em;
 }
 .card-footer {
     background: transparent;
     border-top: none;
 }
 
-/* Login Form Animation */
+/* Login/Register/OTP Card Animation */
 .card.shadow-sm {
     animation: fadeInUp 0.8s;
 }
@@ -119,24 +138,32 @@ input.form-control, select.form-select {
     border-radius: 1rem;
     border: 1.5px solid #e0f7fa;
     transition: border 0.2s, box-shadow 0.2s;
+    font-size: 1.08rem;
+    background: #f8fafc;
+    box-shadow: 0 1px 4px rgba(13,138,188,0.04);
 }
 input.form-control:focus, select.form-select:focus {
     border-color: #0d8abc;
-    box-shadow: 0 0 0 2px #e0f7fa;
+    box-shadow: 0 0 0 2px #e0f7fa, 0 2px 8px rgba(13,138,188,0.08);
+    background: #fff;
 }
 
 .alert-danger {
     border-radius: 1rem;
     background: linear-gradient(90deg, #ff5252 0%, #ffd600 100%);
     color: #222;
-    font-weight: 600;
+    font-weight: 700;
     border: none;
+    box-shadow: 0 2px 12px rgba(255,82,82,0.10);
 }
 
 footer {
     background: linear-gradient(90deg, #0d8abc 0%, #00c853 100%) !important;
-    box-shadow: 0 -2px 12px rgba(13, 138, 188, 0.08);
+    box-shadow: 0 -2px 16px rgba(13, 138, 188, 0.10);
     font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border-radius: 1.5rem 1.5rem 0 0;
 }
 
 /* Floating Cart Button */
@@ -152,14 +179,16 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-    font-size: 2rem;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.14);
+    font-size: 2.1rem;
     z-index: 1000;
-    transition: background 0.2s, transform 0.2s;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    border: 2.5px solid #fff;
 }
 .fab-cart:hover {
     background: linear-gradient(90deg, #0d8abc 0%, #ffd600 100%);
-    transform: scale(1.08);
+    transform: scale(1.10);
+    box-shadow: 0 8px 40px rgba(13,138,188,0.18);
 }
 
 /* Responsive */
@@ -179,5 +208,11 @@ footer {
     }
     .card {
         border-radius: 1rem;
+    }
+    header.bg-light {
+        border-radius: 0 0 1rem 1rem;
+    }
+    footer {
+        border-radius: 1rem 1rem 0 0;
     }
 }
