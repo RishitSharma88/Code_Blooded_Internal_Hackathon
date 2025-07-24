@@ -191,6 +191,42 @@ footer {
     box-shadow: 0 8px 40px rgba(13,138,188,0.18);
 }
 
+/* Floating Chat Button */
+.fab-chat {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: linear-gradient(90deg, #0d8abc 0%, #ffd600 100%);
+    color: #fff;
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.14);
+    font-size: 2.1rem;
+    z-index: 1000;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    border: 2.5px solid #fff;
+}
+.fab-chat:hover {
+    background: linear-gradient(90deg, #ffd600 0%, #0d8abc 100%);
+    transform: scale(1.10);
+    box-shadow: 0 8px 40px rgba(13,138,188,0.18);
+}
+
+.badge.bg-primary, .badge.bg-secondary {
+    white-space: pre-line;
+    word-break: break-word;
+    max-width: 90%;
+    display: inline-block;
+    text-align: left;
+}
+#chatbot-messages {
+    word-break: break-word;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .display-4 {
@@ -200,6 +236,13 @@ footer {
         font-size: 1.3rem;
     }
     .fab-cart {
+        width: 48px;
+        height: 48px;
+        font-size: 1.3rem;
+        bottom: 16px;
+        right: 16px;
+    }
+    .fab-chat {
         width: 48px;
         height: 48px;
         font-size: 1.3rem;

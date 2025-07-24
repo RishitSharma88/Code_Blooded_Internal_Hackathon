@@ -6,32 +6,49 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm animate__animated animate__fadeInUp">
-                <div class="card-body">
+                <div class="card-body text-center">
                     <h5 class="mb-3">Order Total: <span class="fw-bold">₹{{ total }}</span></h5>
-                    <form method="POST" action="/payment">
-                        <div class="mb-3">
-                            <label for="card_number" class="form-label">Card Number</label>
-                            <input type="text" class="form-control" id="card_number" name="card_number" maxlength="16" required placeholder="1234 5678 9012 3456">
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label for="expiry" class="form-label">Expiry</label>
-                                <input type="text" class="form-control" id="expiry" name="expiry" maxlength="5" required placeholder="MM/YY">
-                            </div>
-                            <div class="col">
-                                <label for="cvv" class="form-label">CVV</label>
-                                <input type="password" class="form-control" id="cvv" name="cvv" maxlength="3" required placeholder="123">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name on Card</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100 animate__animated animate__pulse animate__infinite">Pay Now</button>
+                    <button id="rzp-button" class="btn btn-success btn-lg w-100" type="button">Pay with Razorpay</button>
+                    <form id="rzp-success-form" method="POST" action="/payment">
+                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
                     </form>
+                    <div id="debug-info" class="alert alert-warning mt-3" style="display:none;"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const rzpButton = document.getElementById('rzp-button');
+const rzpForm = document.getElementById('rzp-success-form');
+const rzpPaymentId = document.getElementById('razorpay_payment_id');
+const debugInfo = document.getElementById('debug-info');
+
+rzpButton.onclick = function(e){
+    console.log("helllo");
+    
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ amount }}",
+        "currency": "INR",
+        "name": "ShopLore",
+        "description": "Order Payment",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response){
+            // Redirect to /payment with payment_id as query param
+            window.location.href = '/payment?payment_id=' + encodeURIComponent(response.razorpay_payment_id);
+        },
+        "modal": {
+            "ondismiss": function(){
+                alert('Payment popup closed or cancelled.');
+            }
+        },
+        "theme": {"color": "#0d8abc"}
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+    e.preventDefault();
+};
+</script>
+{% endblock %}

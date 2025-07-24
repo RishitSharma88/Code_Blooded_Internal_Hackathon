@@ -13,6 +13,35 @@ from email.mime.text import MIMEText
 import random
 from cart_utils import add_to_cart, get_cart, remove_from_cart, clear_cart, mongo_to_dict
 from bson.objectid import ObjectId
+import razorpay
+from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
+
+load_dotenv()
+
+llm = HuggingFaceEndpoint(
+    repo_id="deepseek-ai/DeepSeek-R1-0528",
+    task="text-generation"
+)
+model = ChatHuggingFace(llm=llm)
+
+# Updated system prompt to always respond in English
+system_prompt = (
+    "You are ShopLore's helpful chat assistant. "
+    "You only answer questions related to ShopLore, its products, services, delivery, and support. "
+    "If a user asks something unrelated, politely refuse and guide them back to ShopLore topics. "
+    "Always respond in English, even if the user types in another language."
+)
+
+model = ChatGoogleGenerativeAI(
+    model="gemini-1.5-flash",
+    temperature=0.1,
+    system_prompt=system_prompt
+)
+
+RAZORPAY_KEY_ID = 'rzp_test_y7fTfE3rLFUTtA'
+RAZORPAY_KEY_SECRET = 'PvMuimFudbmE2q0TZxKSmIOL'
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_urlsafe(32))
@@ -393,23 +422,35 @@ def remove_from_cart_route():
     remove_from_cart(user['username'], code=code, name=name)
     return jsonify({'success': True, 'message': 'Removed from cart'})
 
-@app.route('/payment', methods=['GET', 'POST'])
+@app.route('/payment', methods=['POST'])
 def payment_page():
     user = get_logged_in_user()
     if not user:
         return redirect(url_for('login_page'))
     cart_items = session.get('cart_items', [])
     total = sum(item.get('price', 0) for item in cart_items)
-    if request.method == 'POST':
-        # On payment, create/update cart in DB with status=False
-        db['cart'].update_one(
-            {'username': user['username']},
-            {'$set': {'items': cart_items, 'status': False}},
-            upsert=True
-        )
-        session['cart_items'] = []
-        return redirect(url_for('delivery_page'))
-    return render_template('payment.html', total=round(total, 2), year=datetime.now().year)
+    amount_paise = int(total * 100)
+    client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+    order = client.order.create({'amount': amount_paise, 'currency': 'INR', 'payment_capture': 1})
+    return render_template('payment.html', total=round(total, 2), year=datetime.now().year,
+                           razorpay_key=RAZORPAY_KEY_ID, razorpay_order_id=order['id'], amount=amount_paise)
+
+@app.route('/payment', methods=['GET'])
+def payment_get():
+    user = get_logged_in_user()
+    if not user:
+        return redirect(url_for('login_page'))
+    payment_id = request.args.get('payment_id')
+    if not payment_id:
+        return "Payment failed: No payment_id", 400
+    cart_items = session.get('cart_items', [])
+    db['cart'].update_one(
+        {'username': user['username']},
+        {'$set': {'items': cart_items, 'status': False, 'payment_id': payment_id}},
+        upsert=True
+    )
+    session['cart_items'] = []
+    return redirect(url_for('delivery_page'))
 
 @app.route('/delivery')
 def delivery_page():
@@ -565,6 +606,15 @@ def product_detail(product_id):
     if not product:
         return render_template('product.html', not_found=True)
     return render_template('product.html', product=product, year=datetime.now().year)
+
+@app.route('/api/langchain-chat', methods=['POST'])
+def langchain_chat():
+    data = request.get_json()
+    user_message = data.get('message', '')
+    if not user_message:
+        return jsonify({'success': False, 'error': 'No message provided'}), 400
+    result = model.invoke(user_message)
+    return jsonify({'success': True, 'response': result.content})
 
 if __name__ == '__main__':
     app.run(debug=True, port=4000)
