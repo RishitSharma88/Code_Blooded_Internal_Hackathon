@@ -59,37 +59,49 @@
 <body class="d-flex flex-column min-vh-100">
     <header class="zepto-header">
         <div class="container-fluid d-flex align-items-center justify-content-between">
-            <a href="/" class="zepto-logo">zepto</a>
-            <div class="d-flex align-items-center flex-grow-1 justify-content-center">
-                <div class="zepto-delivery me-3">
-                    Delivery in <span>5 Mins</span>
-                </div>
-                <div>
-                    <select class="form-select form-select-sm" style="width:180px; display:inline-block;">
-                        <option>Enter Your Location</option>
-                        <option>Delhi</option>
-                        <option>Mumbai</option>
-                        <option>Bangalore</option>
-                    </select>
-                </div>
-            </div>
+            <a href="/" class="zepto-logo d-flex align-items-center" style="color: #fff !important;">
+                <img src="{{ url_for('static', filename='images/ShopLore logo.png') }}" alt="ShopLore Logo" width="36" height="36" class="me-2 rounded-circle shadow-sm" style="object-fit:cover;">
+                <span style="color: #fff !important;">ShopLore</span>
+            </a>
             <form class="d-flex align-items-center zepto-search me-3" method="get" action="/">
                 <input class="form-control me-2" type="search" name="q" placeholder="Search for..." aria-label="Search" value="{{ request.args.get('q', '') }}">
                 <button class="btn btn-outline-primary" type="submit">Search</button>
             </form>
             <div class="d-flex align-items-center">
-                <a href="/profile" class="nav-icons" title="Profile">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
-                        <path d="M11 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
-                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0 0 14A7 7 0 0 0 8 1z"/>
-                        <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0-1a6 6 0 1 1 0-12A6 6 0 0 1 8 14z"/>
+                <!-- Chatbot Icon in Navbar -->
+                <a href="#" class="nav-icons me-2" id="langchain-chat-btn" title="Chat with us">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-chat-dots" viewBox="0 0 16 16">
+                        <path d="M2 2a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2.586A1.5 1.5 0 0 1 6 13.5V14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8.414a.5.5 0 0 0-.353.146l-1.414 1.414A.5.5 0 0 1 6 15.5V14a1 1 0 0 0-1-1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+                        <path d="M3 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
                     </svg>
                 </a>
-                <a href="/cart" class="nav-icons ms-3" title="Cart">
+                {% if jwt_user %}
+                <!-- Profile Icon with Dropdown -->
+                <div class="dropdown me-2">
+                    <a href="#" class="nav-icons dropdown-toggle d-flex align-items-center" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="profile-circle me-1">
+                            <img src="https://ui-avatars.com/api/?name={{ jwt_user['username'] }}&background=0D8ABC&color=fff&rounded=true&size=32" alt="Profile" class="rounded-circle" width="32" height="32">
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                        <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                    </ul>
+                </div>
+                <a href="/cart" class="nav-icons ms-1" title="Cart">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
                         <path d="M0 1.5A.5.5 0 0 1 .5 1h1a.5.5 0 0 1 .485.379L2.89 5H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.491-.408L1.01 2H.5a.5.5 0 0 1-.5-.5zM3.102 6l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0z"/>
                     </svg>
                 </a>
+                {% else %}
+                <a href="/login" class="nav-icons" title="Login">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-box-arrow-in-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M6 3a.5.5 0 0 1 .5.5v2.5h5.793l-1.147-1.146a.5.5 0 1 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L12.293 9H6.5v2.5a.5.5 0 0 1-1 0v-8A.5.5 0 0 1 6 3z"/>
+                        <path fill-rule="evenodd" d="M13.5 8a.5.5 0 0 1-.5.5H2.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L2.707 7.5H13a.5.5 0 0 1 .5.5z"/>
+                    </svg>
+                </a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -131,14 +143,6 @@
             </div>
             {% endfor %}
         </div>
-        <!-- Floating Chat Button (was Cart Button) -->
-        <a href="#" class="fab-chat shadow-lg animate__animated animate__bounceIn" id="langchain-chat-btn" title="Chat with us">
-            <!-- Bootstrap chat icon SVG -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-chat-dots" viewBox="0 0 16 16">
-                <path d="M2 2a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2.586A1.5 1.5 0 0 1 6 13.5V14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8.414a.5.5 0 0 0-.353.146l-1.414 1.414A.5.5 0 0 1 6 15.5V14a1 1 0 0 0-1-1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
-                <path d="M3 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-            </svg>
-        </a>
         {% endif %}
     </main>
     <footer class="bg-primary text-white text-center py-3 mt-5 mt-auto">
