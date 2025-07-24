@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% set show_products_section = false %}
+{% block content %}
+<div class="container py-5">
+    {% if not_found %}
+        <div class="alert alert-danger text-center">Product not found.</div>
+    {% else %}
+    <div class="row justify-content-center align-items-center">
+        <div class="col-md-6 text-center">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid rounded shadow-lg mb-4" style="max-height:400px; object-fit:contain;">
+        </div>
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-3">{{ product.name }}</h2>
+            <p class="lead mb-4">{{ product.long_description }}</p>
+            <div class="d-flex align-items-center mb-4">
+                <span class="fw-bold fs-4 me-3">₹{{ product.price }}</span>
+                <button class="btn btn-success btn-lg add-to-cart-btn" data-product='{{ product | tojson | safe }}'>Add to Cart</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

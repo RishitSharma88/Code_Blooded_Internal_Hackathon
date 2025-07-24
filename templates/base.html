@@ -61,17 +61,7 @@
             </div>
         </div>
     </nav>
-    {% if not jwt_user %}
-    <header class="bg-light py-5 mb-4 position-relative">
-        <div class="container text-center">
-            <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Get Groceries Delivered in Minutes!</h1>
-            <p class="lead animate__animated animate__fadeInUp">Fast, fresh, and at your doorstep. Experience the future of quick delivery with <span class="fw-bold text-success">ShopLore</span>.</p>
-            <a href="/register" class="btn btn-primary btn-lg mt-3 animate__animated animate__pulse animate__infinite">Get Started</a>
-        </div>
-        <!-- Animated SVG wave for hero -->
-        <svg class="position-absolute w-100" style="bottom:0; left:0; z-index:1;" height="80" viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#e0f7fa" d="M0,32L48,42.7C96,53,192,75,288,74.7C384,75,480,53,576,37.3C672,21,768,11,864,21.3C960,32,1056,64,1152,74.7C1248,85,1344,75,1392,69.3L1440,64L1440,80L1392,80C1344,80,1248,80,1152,80C1056,80,960,80,864,80C768,80,672,80,576,80C480,80,384,80,288,80C192,80,96,80,48,80L0,80Z"></path></svg>
-    </header>
-    {% endif %}
+    {% block home_header %}{% endblock %}
     {% if jwt_user %}
     <div class="container mt-4">
         <form class="row justify-content-center mb-4" method="get" action="/">
@@ -95,19 +85,31 @@
         <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
             {% for product in products %}
             <div class="col">
-                <div class="card h-100 shadow-sm animate__animated animate__zoomIn">
-                    {% if product.image_url %}
-                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="object-fit:cover; height:200px;">
-                    {% else %}
-                    <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="object-fit:cover; height:200px;">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text">{{ product.description }}</p>
+                <div class="card h-100 shadow-sm animate__animated animate__zoomIn product-card" tabindex="0">
+                    <div class="card-img-top-wrapper text-center">
+                        {% if product._id %}
+                        <a href="/product/{{ product._id }}" style="text-decoration:none; color:inherit; display:inline-block;">
+                        {% else %}
+                        <a href="/product/{{ product.name|urlencode }}" style="text-decoration:none; color:inherit; display:inline-block;">
+                        {% endif %}
+                            {% if product.image_url %}
+                            <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}" style="object-fit:cover; height:200px;">
+                            {% else %}
+                            <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="object-fit:cover; height:200px;">
+                            {% endif %}
+                            <h5 class="card-title mb-0 mt-2">{{ product.name }}</h5>
+                        </a>
                     </div>
-                    <div class="card-footer d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">₹{{ product.price }}</span>
-                        <button class="btn btn-success btn-sm add-to-cart-btn" data-product='{{ product | tojson | safe }}'>Add to Cart</button>
+                    <div class="card-footer d-flex flex-column align-items-stretch">
+                        <span class="fw-bold mb-2">₹{{ product.price }}</span>
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if product._id %}
+                            <button class="btn btn-outline-info btn-sm me-2 more-info-btn" data-href="/product/{{ product._id }}">More Info</button>
+                            {% else %}
+                            <button class="btn btn-outline-info btn-sm me-2 more-info-btn" data-href="/product/{{ product.name|urlencode }}">More Info</button>
+                            {% endif %}
+                            <button class="btn btn-success btn-sm add-to-cart-btn" data-product='{{ product | tojson | safe }}'>Add to Cart</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,6 +150,11 @@
                     }
                 })
                 .catch(() => alert('Error adding to cart.'));
+            });
+        });
+        document.querySelectorAll('.more-info-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                window.location.href = this.getAttribute('data-href');
             });
         });
         // Save user location if user is logged in and is a user

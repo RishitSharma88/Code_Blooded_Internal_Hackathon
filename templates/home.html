@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% set show_products_section = true %}
+{% block home_header %}
+{% if not jwt_user %}
+<header class="bg-light py-5 mb-4 position-relative">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3 animate__animated animate__fadeInDown">Get Groceries Delivered in Minutes!</h1>
+        <p class="lead animate__animated animate__fadeInUp">Fast, fresh, and at your doorstep. Experience the future of quick delivery with <span class="fw-bold text-success">ShopLore</span>.</p>
+        <a href="/register" class="btn btn-primary btn-lg mt-3 animate__animated animate__pulse animate__infinite">Get Started</a>
+        <!-- Carousel for images -->
+        <div id="homeCarousel" class="carousel slide mx-auto shadow-lg rounded-4 mt-5" data-bs-ride="carousel" data-bs-interval="2500" style="max-width: 900px;">
+          <div class="carousel-inner rounded-4">
+            <div class="carousel-item active">
+              <img src="{{ url_for('static', filename='images/img1.avif') }}" class="d-block w-100 rounded-4" alt="Image 1" style="max-height:400px; object-fit:cover;">
+            </div>
+            <div class="carousel-item">
+              <img src="{{ url_for('static', filename='images/img2.avif') }}" class="d-block w-100 rounded-4" alt="Image 2" style="max-height:400px; object-fit:cover;">
+            </div>
+            <div class="carousel-item">
+              <img src="{{ url_for('static', filename='images/img3.avif') }}" class="d-block w-100 rounded-4" alt="Image 3" style="max-height:400px; object-fit:cover;">
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+    </div>
+    <!-- Animated SVG wave for hero -->
+    <svg class="position-absolute w-100" style="bottom:0; left:0; z-index:1;" height="80" viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill="#e0f7fa" d="M0,32L48,42.7C96,53,192,75,288,74.7C384,75,480,53,576,37.3C672,21,768,11,864,21.3C960,32,1056,64,1152,74.7C1248,85,1344,75,1392,69.3L1440,64L1440,80L1392,80C1344,80,1248,80,1152,80C1056,80,960,80,864,80C768,80,672,80,576,80C480,80,384,80,288,80C192,80,96,80,48,80L0,80Z"></path></svg>
+</header>
+{% endif %}
+{% endblock %}
+{% block content %}{% endblock %}

@@ -40,7 +40,7 @@ def fetch_openfoodfacts_products(query=None, category=None):
         'action': 'process',
         'json': 1,
         'page_size': 50,
-        'fields': 'product_name,image_url,brands,nutrition_grades_tags,code',
+        'fields': 'product_name,image_url,brands,nutrition_grades_tags,code,generic_name,ingredients_text,categories',
         'sort_by': 'unique_scans_n',
     }
     if query:
@@ -56,9 +56,18 @@ def fetch_openfoodfacts_products(query=None, category=None):
         for p in data.get('products', []):
             if not p.get('product_name') or not p.get('image_url'):
                 continue
+            # Compose a long description
+            long_desc = p.get('generic_name')
+            if not long_desc:
+                long_desc = p.get('ingredients_text')
+            if not long_desc:
+                long_desc = p.get('categories')
+            if not long_desc:
+                long_desc = f"Brand: {p.get('brands', 'N/A')} | Nutri-Grade: {','.join(p.get('nutrition_grades_tags', []))}"
             products.append({
                 'name': p['product_name'],
                 'description': f"Brand: {p.get('brands', 'N/A')} | Nutri-Grade: {','.join(p.get('nutrition_grades_tags', []))}",
+                'long_description': long_desc,
                 'image_url': p['image_url'],
                 'price': round(50 + 200 * (hash(p['code']) % 100) / 100, 2)
             })
@@ -118,16 +127,18 @@ def home():
         elif 'snack' in q or 'chips' in q:
             category = 'snacks'
         # Add more mappings as needed
+    # Always fetch API products
+    api_products = fetch_openfoodfacts_products(q if q else None, category)
+    local_products = []
     if user:
         product_collection = db['products']
         local_products = [mongo_to_dict(p) for p in product_collection.find()]
-        api_products = fetch_openfoodfacts_products(q if q else None, category)
-        all_products = local_products + api_products
-        if q:
-            products = [p for p in all_products if q in p.get('name', '').lower() or q in p.get('description', '').lower()]
-        else:
-            products = all_products
-    return render_template('base.html', year=datetime.now().year, products=products)
+    all_products = local_products + api_products
+    if q:
+        products = [p for p in all_products if q in p.get('name', '').lower() or q in p.get('description', '').lower()]
+    else:
+        products = all_products
+    return render_template('home.html', year=datetime.now().year, products=products)
 
 @app.route('/dashboard')
 def user_dashboard():
@@ -504,7 +515,21 @@ def save_rating():
         'value': value,
         'date': datetime.now().strftime('%Y-%m-%d %H:%M')
     })
-    # Do NOT set status=True here
+    # Send order delivered confirmation email
+    user_doc = db['users'].find_one({'username': user['username']})
+    if user_doc and user_doc.get('email'):
+        try:
+            subject = "Order delivered"
+            body = f"Your order has been delivered. Thank you for shopping with ShopLore!"
+            msg = MIMEText(body, 'html')
+            msg['Subject'] = subject
+            msg['From'] = EMAIL_ADDRESS
+            msg['To'] = user_doc['email']
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                smtp.sendmail(EMAIL_ADDRESS, user_doc['email'], msg.as_string())
+        except Exception as e:
+            print('Order delivered email send error:', e)
     return jsonify({'success': True, 'message': 'Thank you for your feedback!'})
 
 @app.route('/finish-booking', methods=['POST'])
@@ -518,6 +543,28 @@ def finish_booking():
         return jsonify({'success': False, 'message': 'Missing username'}), 400
     db['cart'].update_one({'username': username}, {'$set': {'status': True, 'items': []}})
     return jsonify({'success': True, 'message': 'Booking finished'})
+
+@app.route('/product/<product_id>')
+def product_detail(product_id):
+    from bson.objectid import ObjectId
+    product = None
+    # Try to find in local DB by _id if possible
+    try:
+        product = db['products'].find_one({'_id': ObjectId(product_id)})
+        if product:
+            product = mongo_to_dict(product)
+    except Exception:
+        pass
+    if not product:
+        # Fallback: try to find in API products by name (since API products have no _id)
+        all_products = fetch_openfoodfacts_products()
+        # Decode product_id if it was urlencoded
+        from urllib.parse import unquote
+        product_name = unquote(product_id)
+        product = next((p for p in all_products if p['name'] == product_name), None)
+    if not product:
+        return render_template('product.html', not_found=True)
+    return render_template('product.html', product=product, year=datetime.now().year)
 
 if __name__ == '__main__':
     app.run(debug=True, port=4000)
